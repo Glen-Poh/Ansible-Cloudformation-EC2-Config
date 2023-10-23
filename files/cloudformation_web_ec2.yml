@@ -1,0 +1,89 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create 2 EC2 for Ansible control machine
+
+Parameters:
+  AvailabilityZone:
+    Description: Name of Availability Zone
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: us-east-1a
+  ImageId: 
+    Description: AMI id for ubuntu
+    Type: AWS::EC2::Image::Id
+    Default: ami-053b0d53c279acc90
+  InstanceType:
+    Description: EC2 instance type
+    Type: String
+    Default: t2.micro
+    ConstraintDescription: Must be a valid EC2 instance type.
+  MyKeyPair:
+    Description: Name of an existing EC2 KeyPair to enable SSH access
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    Default: NewKeyPair
+  
+Resources:
+  WebServer1:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+        - !Ref WebServerSecurityGroup
+      KeyName: !Ref MyKeyPair
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo apt update -y
+      Tags: 
+        - Key: Name
+          Value: Webserver1
+        - Key: project
+          Value: ansible
+        - Key: env
+          Value: poc
+        - Key: app
+          Value: web
+
+  WebServer2:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Ref AvailabilityZone
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      SecurityGroups:
+        - !Ref WebServerSecurityGroup
+      KeyName: !Ref MyKeyPair
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo apt update -y
+      Tags: 
+        - Key: Name
+          Value: Webserver2
+        - Key: project
+          Value: ansible
+        - Key: env
+          Value: poc
+        - Key: app
+          Value: web
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0 # Allow everywhere just for ease of use for this project
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+      - CidrIp: 0.0.0.0/0 # Allow everywhere just for ease of use for this project
+        IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+      Tags:
+        - Key: Name
+          Value: WebserverSG
+        - Key: project
+          Value: ansible
+        - Key: env
+          Value: poc

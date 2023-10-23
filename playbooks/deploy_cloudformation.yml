@@ -1,0 +1,50 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  tasks:
+    - name: Retrieve EC2 variables
+      include_vars: ../vars/var_file.yml
+
+    - name:  Create Cloudformation stack(AWS EC2) 
+      amazon.aws.cloudformation:
+        stack_name: "{{stack_name}}"
+        region: "{{ region }}"
+        disable_rollback: true
+        state: present
+        template: "../files/cloudformation_web_ec2.yml"
+        tags:
+          stack: "{{stack_name}}"
+
+    - name: Create inventory directory
+      file:
+        path: /opt/ansible/inventory
+        state: directory
+      become: yes
+
+    - name: Create AWS EC2 dynamic inventory configuration file
+      copy:
+        content: |
+          plugin: aws_ec2
+          regions:
+            - us-east-1
+          keyed_groups:
+            - key: tags.project
+          filters:
+            instance-state-name : running
+            tag:app: web
+        dest: /opt/ansible/inventory/aws_ec2.yml
+      become: yes
+
+    - name: Update Ansible configuration
+      lineinfile:
+        path: /etc/ansible/ansible.cfg
+        line: "{{ item }}"
+      loop:
+        - '[inventory]'
+        - 'enable_plugins = aws_ec2'
+        - '[defaults]'
+        - 'inventory = /opt/ansible/inventory/aws_ec2.yml'
+      become: yes
+      become_user: root
+

@@ -1,0 +1,16 @@
+---
+- hosts: aws_ec2
+  gather_facts: false
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+      become: yes
+
+    - name: Start Nginx Service
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
