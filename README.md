@@ -73,6 +73,7 @@ ansible-playbook playbooks/configure_webserver.yml --private-key NewKeyPair.pem
 ## Results
 
 Access the two web servers via a web browser. You should be able to see a page indicating that Nginx has been successfully installed.
+<br/>
 <img src="images/5.browser.PNG" alt="image" style="width:600px;"/>
 
 ## Deleting the infrastructure
