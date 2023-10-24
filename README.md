@@ -1,5 +1,7 @@
 # Ansible and AWS CloudFormation: Configuring AWS EC2 Resources
-Deploying and configuring AWS EC2 using Ansible and Cloudformation
+Deploying and configuring AWS EC2 using Ansible and Cloudformation.
+<img src="images/ansible_aws.png" alt="image" style="width:600px;"/>
+
 ## Introduction
 Ansible is an open-source automation tool designed for configuration management, application deployment, and task automation. It simplifies IT operations by allowing users to define and automate workflows using YAML-based playbooks, making it easier to manage and orchestrate infrastructure and applications across multiple servers or devices.
 <br/>

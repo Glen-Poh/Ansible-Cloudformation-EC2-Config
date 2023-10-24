@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Create an EC2 for Ansible control machine
+
+Resources:
+  AnsibleControlMachine:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: us-east-1a
+      ImageId: ami-053b0d53c279acc90
+      InstanceType: t2.micro
+      SecurityGroups:
+        - !Ref AnsibleCMSecurityGroup
+      KeyName: !Ref AnsibleCMKeyPair
+      IamInstanceProfile: !Ref AnsibleCMIAMProfile
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo apt update -y
+          sudo apt install awscli -y
+          sudo add-apt-repository --yes --update ppa:ansible/ansible 
+          sudo apt install ansible -y
+          sudo apt install python3-boto3 -y
+          ansible-galaxy collection install amazon.aws
+          sudo apt install python3-pip -y
+          pip install --upgrade botocore 
+          pip install --upgrade boto3
+      Tags: 
+        - Key: Name
+          Value: Ansible_Control_Machine
+   
+  AnsibleCMSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0 # Allow everywhere just for ease of use for this project
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+      Tags:
+        - Key: Name
+          Value: AnsibleCMSG
+
+  AnsibleCMKeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties: 
+      KeyFormat: pem
+      KeyName: Ansible_CM_key
+      KeyType: rsa
+
+  AnsibleCMIAMRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Description: Provide the Ansible EC2 poweruseraccess
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/PowerUserAccess
+      RoleName: Ansible_poweruser
+
+  AnsibleCMIAMProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref AnsibleCMIAMRole
+
+Outputs:
+  EC2InstancePublicIP:
+    Description: Public IP address of Ansible Control Machine
+    Value: !GetAtt AnsibleControlMachine.PublicIp
+
+  EC2InstancePrivateIP:
+    Description: Private IP address of Ansible Control Machine
+    Value: !GetAtt AnsibleControlMachine.PrivateIp
